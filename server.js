@@ -167,7 +167,12 @@ app.post('/api/generate-docs', async (req, res) => {
     }
 });
 
+// THIS IS THE CRITICAL PART THAT KEEPS THE SERVER ALIVE
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`✅ Server is successfully running on http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`✅ Server is successfully running on http://localhost:${PORT}`);
+    });
+}
+
+module.exports = app;
