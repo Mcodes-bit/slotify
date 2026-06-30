@@ -1,0 +1,2056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slotify - The Last-Minute Life Saver</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Marked.js for rendering markdown solutions -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg: #070913;
+            --panel-bg: rgba(15, 22, 42, 0.65);
+            --border: rgba(255, 255, 255, 0.08);
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --primary-glow: rgba(99, 102, 241, 0.35);
+            
+            --accent: #d946ef;
+            --accent-glow: rgba(217, 70, 239, 0.25);
+            
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            
+            --high: #ef4444;
+            --high-bg: rgba(239, 68, 68, 0.15);
+            --medium: #f59e0b;
+            --medium-bg: rgba(245, 158, 11, 0.15);
+            --low: #10b981;
+            --low-bg: rgba(16, 185, 129, 0.15);
+            --habit: #06b6d4;
+            --habit-bg: rgba(6, 182, 212, 0.15);
+            --goal: #8b5cf6;
+            --goal-bg: rgba(139, 92, 246, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Ambient Background Blobs */
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            width: 450px;
+            height: 450px;
+            border-radius: 50%;
+            filter: blur(140px);
+            z-index: -10;
+            opacity: 0.35;
+            pointer-events: none;
+        }
+        body::before {
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            top: -100px;
+            left: -100px;
+            animation: float-blob 20s infinite alternate;
+        }
+        body::after {
+            background: linear-gradient(135deg, var(--accent), #a855f7);
+            bottom: -150px;
+            right: -100px;
+            animation: float-blob 18s infinite alternate-reverse;
+        }
+
+        @keyframes float-blob {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(60px, 80px) scale(1.15); }
+            100% { transform: translate(-30px, -40px) scale(0.9); }
+        }
+
+        /* Top Header Bar */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(11, 15, 30, 0.5);
+            backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff 20%, var(--primary) 60%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .badge-proactive {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            animation: pulse-green 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-green {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; box-shadow: 0 0 10px rgba(52, 211, 153, 0.2); }
+        }
+
+        /* Navigation Tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .tab-btn.active {
+            color: #fff;
+            background: var(--primary);
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        /* Main Workspace */
+        main {
+            flex: 1;
+            padding: 40px;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fade-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fade-up {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Dashboard layouts */
+        .grid-planner {
+            display: grid;
+            grid-template-columns: 1fr 1.3fr;
+            gap: 32px;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-planner {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .glass-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        .card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #fff;
+        }
+
+        /* Form elements */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .input-group.full {
+            grid-column: span 2;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.3px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            background: rgba(8, 12, 26, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+            background: rgba(8, 12, 26, 0.8);
+        }
+
+        /* Microphone/Dictation Panel */
+        .dictation-area {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .mic-btn {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .mic-btn:hover {
+            background: var(--primary);
+            color: #fff;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .mic-btn.listening {
+            background: #ef4444;
+            color: white;
+            border-color: #f87171;
+            animation: pulse-red 1.2s infinite;
+        }
+
+        @keyframes pulse-red {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+            50% { transform: scale(1.08); box-shadow: 0 0 15px 5px rgba(239, 68, 68, 0.3); }
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
+            color: #fff;
+            box-shadow: 0 4px 14px var(--primary-glow);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-action:active {
+            transform: translateY(0);
+        }
+
+        .btn-action:disabled {
+            background: #334155;
+            color: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Timeline and Scheduler Cards */
+        .schedule-timeline {
+            position: relative;
+            padding-left: 30px;
+            margin-top: 10px;
+        }
+
+        .schedule-timeline::before {
+            content: '';
+            position: absolute;
+            left: 9px;
+            top: 12px;
+            bottom: 12px;
+            width: 2px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .schedule-card {
+            position: relative;
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .schedule-card::before {
+            content: '';
+            position: absolute;
+            left: -26px;
+            top: 26px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--bg);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            z-index: 10;
+            transition: all 0.2s ease;
+        }
+
+        .schedule-card:hover {
+            transform: translateX(4px);
+            background: rgba(255, 255, 255, 0.035);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Card priority styles */
+        .schedule-card.High::before { border-color: var(--high); }
+        .schedule-card.Medium::before { border-color: var(--medium); }
+        .schedule-card.Low::before { border-color: var(--low); }
+        .schedule-card.Habit::before { border-color: var(--habit); }
+        .schedule-card.Goal::before { border-color: var(--goal); }
+
+        .card-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .time-badge-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .time-badge {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 5px 10px;
+            border-radius: 8px;
+            color: #e2e8f0;
+        }
+
+        .priority-pill {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 100px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .priority-pill.High { color: var(--high); background: var(--high-bg); }
+        .priority-pill.Medium { color: var(--medium); background: var(--medium-bg); }
+        .priority-pill.Low { color: var(--low); background: var(--low-bg); }
+        .priority-pill.Habit { color: var(--habit); background: var(--habit-bg); }
+        .priority-pill.Goal { color: var(--goal); background: var(--goal-bg); }
+
+        .schedule-task-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .schedule-note {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            border-left: 2px solid rgba(255, 255, 255, 0.08);
+            padding-left: 12px;
+            line-height: 1.4;
+        }
+
+        .card-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4px;
+        }
+
+        .btn-kickstart {
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--primary);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-kickstart:hover {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 10px var(--primary-glow);
+        }
+
+        .chk-complete {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .chk-complete input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* Checked State */
+        .schedule-card.completed {
+            opacity: 0.45;
+            background: rgba(255, 255, 255, 0.005);
+        }
+
+        .schedule-card.completed .schedule-task-title {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .schedule-card.completed::before {
+            background: var(--low) !important;
+            border-color: var(--low) !important;
+        }
+
+        /* Slide-out Sidebar Drawer for Solutions/Docs */
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: -550px;
+            width: 520px;
+            height: 100vh;
+            background: #0b0f19;
+            border-left: 1px solid var(--border);
+            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .drawer.open {
+            right: 0;
+        }
+
+        .drawer-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .drawer-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .drawer-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .drawer-close:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+
+        .drawer-body {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+
+        /* Style inside markdown solutions */
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+            font-family: 'Outfit', sans-serif;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .markdown-content p {
+            margin-bottom: 12px;
+            color: #cbd5e1;
+        }
+
+        .markdown-content ul, .markdown-content ol {
+            margin-left: 20px;
+            margin-bottom: 16px;
+            color: #cbd5e1;
+        }
+
+        .markdown-content code {
+            font-family: 'Fira Code', monospace;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .markdown-content pre {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            padding: 16px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin-bottom: 16px;
+        }
+
+        .markdown-content pre code {
+            background: none;
+            padding: 0;
+            border-radius: 0;
+            color: #e2e8f0;
+        }
+
+        .drawer-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border);
+            background: rgba(0,0,0,0.2);
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Habits & Goals Panels */
+        .split-dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+        }
+
+        @media (max-width: 768px) {
+            .split-dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .habit-item, .goal-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid var(--border);
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .habit-item:hover, .goal-item:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.025);
+        }
+
+        .habit-info, .goal-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .habit-name, .goal-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .habit-streak {
+            font-size: 0.8rem;
+            color: var(--habit);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-decompose {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--goal);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-decompose:hover {
+            background: var(--goal);
+            color: white;
+        }
+
+        /* Calendar Table Simulator */
+        .calendar-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .calendar-table th, .calendar-table td {
+            border: 1px solid var(--border);
+            padding: 16px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .calendar-table th {
+            background: rgba(255,255,255,0.02);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            color: #fff;
+            width: 14.28%;
+        }
+
+        .calendar-day-cell {
+            min-height: 120px;
+        }
+
+        .cal-task-pill {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            border-left: 3px solid #fff;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            background: rgba(255,255,255,0.04);
+        }
+
+        .cal-task-pill.High { border-left-color: var(--high); color: #fda4af; background: rgba(239, 68, 68, 0.08); }
+        .cal-task-pill.Medium { border-left-color: var(--medium); color: #fde047; background: rgba(245, 158, 11, 0.08); }
+        .cal-task-pill.Low { border-left-color: var(--low); color: #6ee7b7; background: rgba(16, 185, 129, 0.08); }
+        .cal-task-pill.Habit { border-left-color: var(--habit); color: #67e8f9; background: rgba(6, 182, 212, 0.08); }
+        .cal-task-pill.Goal { border-left-color: var(--goal); color: #c084fc; background: rgba(139, 92, 246, 0.08); }
+
+        /* Nudge Simulator and Alarms */
+        .emergency-banner {
+            display: none;
+            background: linear-gradient(90deg, #ef4444 0%, #b91c1c 100%);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+            animation: pulse-red-banner 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-red-banner {
+            0%, 100% { box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
+            50% { box-shadow: 0 4px 25px rgba(239, 68, 68, 0.7); }
+        }
+
+        .nudge-status-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #334155;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .nudge-btn-emergency {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .nudge-btn-emergency:hover {
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+        }
+
+        /* AI Advisor Chat UI */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .chat-msg {
+            max-width: 75%;
+            padding: 14px 18px;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .chat-msg.user {
+            background: var(--primary);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-msg.bot {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            color: #e2e8f0;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .chat-quick-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .btn-quick-chat {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-quick-chat:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Modal/Dialog for Decomposed Steps */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-card {
+            background: #0f1322;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            animation: modal-enter 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modal-enter {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-step-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            padding: 14px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+        }
+
+        .modal-step-item:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-add-step-task {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-add-step-task:hover {
+            transform: scale(1.1);
+        }
+
+        /* General layout utilities */
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 40px 0;
+            font-size: 0.95rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .empty-state svg {
+            opacity: 0.25;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <nav>
+        <div class="logo-container">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="url(#logo-grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <defs>
+                    <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#6366f1" />
+                        <stop offset="100%" stop-color="#d946ef" />
+                    </linearGradient>
+                </defs>
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            <span class="logo-text">Slotify</span>
+            <span class="badge-proactive">Proactive Mode</span>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('tab-planner')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Planner
+            </button>
+            <button class="tab-btn" onclick="switchTab('tab-habits')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Habits & Goals
+            </button>
+            <button class="tab-btn" onclick="switchTab('tab-calendar')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Calendar
+            </button>
+            <button class="tab-btn" onclick="switchTab('tab-nudge')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                Nudges
+            </button>
+            <button class="tab-btn" onclick="switchTab('tab-advisor')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                AI Advisor
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content Workspace -->
+    <main>
+
+        <!-- Emergency Banner (Controlled in Nudge Tab) -->
+        <div id="emergency-banner" class="emergency-banner">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <div>
+                    <strong style="display:block;">EMERGENCY SPRINT MODE ACTIVE</strong>
+                    <span style="font-size:0.85rem; opacity:0.9;">Low priority tasks are hidden. Focus entirely on high-stakes deadlines.</span>
+                </div>
+            </div>
+            <button class="btn-kickstart" style="background:#fff; color:#ef4444; border:none;" onclick="toggleEmergencyMode(false)">Deactivate</button>
+        </div>
+
+        <!-- 1. TAB: PLANNER -->
+        <div id="tab-planner" class="tab-content active">
+            <div class="grid-planner">
+                <!-- Task Entry Panel -->
+                <div class="glass-card" style="display:flex; flex-direction:column; gap:20px;">
+                    <div>
+                        <h2 class="card-title">Add Structured Task</h2>
+                        <p style="font-size:0.8rem; color:var(--text-muted); margin-top:-12px; margin-bottom:12px;">Add tasks manually to feed the AI schedule optimizer.</p>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="task-title">Task Title</label>
+                        <input type="text" id="task-title" placeholder="e.g. Finish chemistry lab report">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="task-desc">Task Description (Optional)</label>
+                        <textarea id="task-desc" rows="2" placeholder="e.g. Write methodology, graph results, summarize findings..."></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="task-duration">Duration (Minutes)</label>
+                            <input type="number" id="task-duration" value="30" min="5" step="5">
+                        </div>
+                        <div class="input-group">
+                            <label for="task-deadline">Deadline (Date & Time)</label>
+                            <input type="text" id="task-deadline" placeholder="e.g. 7:00 PM or Oct 12, 5:00 PM">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="task-category">Category</label>
+                            <select id="task-category">
+                                <option value="Study">📚 Study / Academic</option>
+                                <option value="Work">💼 Work / Professional</option>
+                                <option value="Personal">🏠 Personal / Social</option>
+                                <option value="Chore">🧹 Chore / Admin</option>
+                                <option value="Health">🧘 Health / Fitness</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="task-priority">Priority</label>
+                            <select id="task-priority">
+                                <option value="High">🔴 High Urgency</option>
+                                <option value="Medium" selected>🟡 Medium Urgency</option>
+                                <option value="Low">🟢 Low Urgency</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn-action" onclick="addTaskToList()" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); box-shadow:none; color:var(--text-main);">
+                        Add Task to List
+                    </button>
+
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin: 12px 0; color: var(--text-muted); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;">
+                        <span style="flex: 1; height: 1px; background: var(--border);"></span>
+                        <span>OR (Use either or both)</span>
+                        <span style="flex: 1; height: 1px; background: var(--border);"></span>
+                    </div>
+
+                    <div>
+                        <h2 class="card-title">Brain Dump (AI Parser)</h2>
+                        <p style="font-size:0.8rem; color:var(--text-muted); margin-top:-12px;">Dump thoughts or use the microphone to dictate tasks hands-free.</p>
+                    </div>
+
+                    <div class="dictation-area">
+                        <textarea id="brain-dump" rows="4" placeholder="e.g. Call mom, finish chemistry lab by 5pm, drink water every hour, stretch..."></textarea>
+                        <button class="mic-btn" id="mic-btn" onclick="toggleDictation()" title="Voice Dictation">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="available-timeframe">Available Timeframe Today</label>
+                        <input type="text" id="available-timeframe" value="9:00 AM to 5:00 PM">
+                    </div>
+
+                    <button class="btn-action" id="btn-generate-schedule" onclick="generateAISchedule()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                        Optimize & Build AI Schedule
+                    </button>
+                </div>
+
+                <!-- Schedule / Output Panel -->
+                <div class="glass-card">
+                    <h2 class="card-title">Structured Daily Timeline</h2>
+                    <div id="planner-loading" class="empty-state" style="display:none;">
+                        <div class="spinner" style="width:36px; height:36px; border:3px solid rgba(255,255,255,0.1); border-top:3px solid var(--primary); border-radius:50%; animation:spin 1s linear infinite;"></div>
+                        <div>AI is restructuring your task flow...</div>
+                    </div>
+                    <div id="schedule-timeline-container" class="schedule-timeline">
+                        <!-- Populated by JavaScript -->
+                        <div class="empty-state">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <div>Your AI-optimized timeline will render here. Add tasks and click 'Optimize & Build'.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. TAB: HABITS & GOALS -->
+        <div id="tab-habits" class="tab-content">
+            <div class="split-dashboard">
+                <!-- Habits panel -->
+                <div class="glass-card">
+                    <h2 class="card-title">Daily Habits</h2>
+                    <div style="display:flex; gap:12px; margin-bottom:24px;">
+                        <input type="text" id="habit-title" placeholder="e.g. Drink 250ml Water, Stretch">
+                        <button class="btn-action" style="width:auto; padding:12px 20px;" onclick="addHabit()">Add</button>
+                    </div>
+                    <div id="habits-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Goals panel -->
+                <div class="glass-card">
+                    <h2 class="card-title">Long-Term Goals</h2>
+                    <div style="display:flex; gap:12px; margin-bottom:24px;">
+                        <input type="text" id="goal-title" placeholder="e.g. Build personal portfolio app">
+                        <button class="btn-action" style="width:auto; padding:12px 20px;" onclick="addGoal()">Add</button>
+                    </div>
+                    <div id="goals-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. TAB: CALENDAR -->
+        <div id="tab-calendar" class="tab-content">
+            <div class="glass-card">
+                <div class="card-title">
+                    <span>Weekly Calendar Planner</span>
+                    <button class="btn-kickstart" onclick="exportToICS()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                        Export to Google / Apple Calendar (.ics)
+                    </button>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="calendar-table">
+                        <thead>
+                            <tr>
+                                <th>Monday</th>
+                                <th>Tuesday</th>
+                                <th>Wednesday</th>
+                                <th>Thursday</th>
+                                <th>Friday</th>
+                                <th>Saturday</th>
+                                <th>Sunday</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><div class="calendar-day-cell" id="cal-Mon"></div></td>
+                                <td><div class="calendar-day-cell" id="cal-Tue"></div></td>
+                                <td><div class="calendar-day-cell" id="cal-Wed"></div></td>
+                                <td><div class="calendar-day-cell" id="cal-Thu"></div></td>
+                                <td><div class="calendar-day-cell" id="cal-Fri"></div></td>
+                                <td><div class="calendar-day-cell" id="cal-Sat"></div></td>
+                                <td><div class="calendar-day-cell" id="cal-Sun"></div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. TAB: NUDGES -->
+        <div id="tab-nudge" class="tab-content">
+            <div class="glass-card" style="max-width: 600px; margin: 0 auto;">
+                <h2 class="card-title">Context-Aware Nudge Center</h2>
+                
+                <div class="nudge-status-row">
+                    <div>
+                        <strong style="display:block; font-size:1.05rem;">Speech Synthesis Alarms</strong>
+                        <span style="font-size:0.85rem; color:var(--text-muted);">The scheduler will voice-out reminders when deadlines approach.</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="voice-synthesis-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="nudge-status-row">
+                    <div>
+                        <strong style="display:block; font-size:1.05rem; color:#f87171;">Emergency Focus Mode</strong>
+                        <span style="font-size:0.85rem; color:var(--text-muted);">Hides minor tasks, reshapes priority to High, and accelerates alert frequency.</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="emergency-mode-toggle" onchange="toggleEmergencyMode(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:16px; margin-top:24px;">
+                    <h3>Simulation Suite</h3>
+                    <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.4;">Test the scheduler's proactive action behavior. Simulate what happens when you approach a critical deadline.</p>
+                    
+                    <button class="btn-action" onclick="simulateUrgentNudge()">
+                        Simulate Close-Deadline Voice Alert
+                    </button>
+                </div>
+            </div>
+
+            <!-- Helpful Info Box: Reminders when closed -->
+            <div class="glass-card" style="max-width: 600px; margin: 24px auto 0 auto; padding: 24px; border-color: rgba(99, 102, 241, 0.2); background: rgba(15, 22, 42, 0.4);">
+                <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; margin-bottom: 12px; color: #fff; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    How to get reminders when the website is closed:
+                </h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;">
+                    To ensure you never miss a deadline even when the app is closed, you can use the <strong>Calendar Export</strong> feature we built:
+                </p>
+                <ol style="font-size: 0.85rem; color: var(--text-muted); padding-left: 20px; display: flex; flex-direction: column; gap: 8px; line-height: 1.5;">
+                    <li>Go to the <strong>Calendar</strong> tab in Slotify.</li>
+                    <li>Click <strong>Export to Google / Apple Calendar (.ics)</strong>.</li>
+                    <li>Import this file into your calendar app (Google Calendar, Outlook, or Apple Calendar).</li>
+                    <li>Since these calendar apps are integrated into your operating system (Windows/macOS) or phone, they will trigger <strong>native system notifications and alarms</strong> on your desktop or mobile device, even if your browser is completely shut down!</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- 5. TAB: AI ADVISOR -->
+        <div id="tab-advisor" class="tab-content">
+            <div class="glass-card" style="max-width:800px; margin:0 auto;">
+                <h2 class="card-title">AI Productivity Advisor</h2>
+                
+                <div class="chat-container">
+                    <div class="chat-messages" id="chat-messages">
+                        <div class="chat-msg bot">
+                            Hello! I am your AI Productivity Advisor. I've analyzed your current task structure. 
+                            Ask me anything to overcome friction, manage workload stress, or organize a Pomodoro strategy!
+                        </div>
+                    </div>
+                    
+                    <div class="chat-quick-actions">
+                        <button class="btn-quick-chat" onclick="triggerQuickChat('Analyze my workload and highlight bottlenecks.')">📊 Workload Analysis</button>
+                        <button class="btn-quick-chat" onclick="triggerQuickChat('I\'m feeling overwhelmed by high priority tasks, how do I start?')">😰 Overcome Friction</button>
+                        <button class="btn-quick-chat" onclick="triggerQuickChat('Structure a Pomodoro session plan for my high-priority tasks.')">⏱️ Pomodoro Plan</button>
+                    </div>
+
+                    <div class="chat-input-row">
+                        <input type="text" id="chat-input" placeholder="Ask advisor a question..." onkeydown="if(event.key==='Enter') sendAdvisorMessage()">
+                        <button class="btn-action" style="width:auto; padding:0 24px;" onclick="sendAdvisorMessage()">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- SLIDE-OUT DRAWER FOR DOCUMENT GENERATION -->
+    <div class="drawer" id="docs-drawer">
+        <div class="drawer-header">
+            <h3 class="drawer-title" id="drawer-task-title">AI Kickstart Document</h3>
+            <button class="drawer-close" onclick="closeDrawer()">&times;</button>
+        </div>
+        <div class="drawer-body markdown-content" id="drawer-body-content">
+            <!-- Populated dynamically -->
+        </div>
+        <div class="drawer-footer">
+            <button class="btn-action" onclick="copyDrawerContent()" style="flex:1;">Copy Content</button>
+            <button class="btn-action" onclick="downloadDrawerMarkdown()" style="flex:1; background:rgba(255,255,255,0.05); border:1px solid var(--border); box-shadow:none;">Download MD</button>
+        </div>
+    </div>
+
+    <!-- GOAL DECOMPOSITION MODAL -->
+    <div class="modal-overlay" id="goal-modal">
+        <div class="modal-card">
+            <h3 class="card-title" id="modal-goal-title" style="margin-bottom:8px;">Decomposed Goal Steps</h3>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:20px;">Click the '+' button next to a step to import it into your daily scheduler as an active task.</p>
+            <div id="modal-steps-container"></div>
+            <button class="btn-action" onclick="closeGoalModal()" style="margin-top:16px; background:rgba(255,255,255,0.05); border:1px solid var(--border); box-shadow:none;">Close</button>
+        </div>
+    </div>
+
+    <!-- APPLICATION SCRIPTS -->
+    <script>
+        // Core State Databases (Stored in LocalStorage)
+        let tasksList = JSON.parse(localStorage.getItem('v2s_tasks')) || [];
+        let habitsList = JSON.parse(localStorage.getItem('v2s_habits')) || [
+            { name: "Drink 250ml Water", streak: 0, completed: false },
+            { name: "Take a 5-min stretch break", streak: 0, completed: false }
+        ];
+        let goalsList = JSON.parse(localStorage.getItem('v2s_goals')) || [
+            { name: "Study for math finals" },
+            { name: "Complete software development specification sheet" }
+        ];
+        let currentSchedule = JSON.parse(localStorage.getItem('v2s_schedule')) || [];
+        let emergencyModeActive = JSON.parse(localStorage.getItem('v2s_emergency')) || false;
+        let advisorHistory = [];
+
+        // App Initializer
+        window.addEventListener('load', () => {
+            renderTasksList();
+            renderHabits();
+            renderGoals();
+            renderSchedule(currentSchedule);
+            renderCalendar(currentSchedule);
+            
+            // Sync Emergency Mode
+            document.getElementById('emergency-mode-toggle').checked = emergencyModeActive;
+            document.getElementById('emergency-banner').style.display = emergencyModeActive ? 'flex' : 'none';
+        });
+
+        // Tab Switcher Logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Find button mapping to tabId
+            const map = {
+                'tab-planner': 0,
+                'tab-habits': 1,
+                'tab-calendar': 2,
+                'tab-nudge': 3,
+                'tab-advisor': 4
+            };
+            document.querySelectorAll('.tab-btn')[map[tabId]].classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // Voice Dictation (Speech-to-Text)
+        let recognition;
+        function toggleDictation() {
+            const micBtn = document.getElementById('mic-btn');
+            const dumpTextarea = document.getElementById('brain-dump');
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert("Speech recognition is not supported in this browser. Please use Google Chrome or Safari.");
+                return;
+            }
+
+            if (micBtn.classList.contains('listening')) {
+                if (recognition) recognition.stop();
+                return;
+            }
+
+            if (!recognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+
+                recognition.onstart = () => {
+                    micBtn.classList.add('listening');
+                };
+
+                recognition.onresult = (event) => {
+                    const resultText = event.results[0][0].transcript;
+                    dumpTextarea.value = dumpTextarea.value ? dumpTextarea.value + ", " + resultText : resultText;
+                    speakText(`Recognized: ${resultText}`);
+                };
+
+                recognition.onerror = (e) => {
+                    console.error("Speech Error:", e.error);
+                    micBtn.classList.remove('listening');
+                    if (e.error === 'not-allowed') {
+                        alert("Microphone access blocked. Please enable microphone permissions in your browser address bar.");
+                        speakText("Microphone access blocked. Please enable permissions.");
+                    } else if (e.error === 'no-speech') {
+                        speakText("I didn't hear anything. Please try again.");
+                    }
+                };
+
+                recognition.onend = () => {
+                    micBtn.classList.remove('listening');
+                };
+            }
+
+            speakText("Listening. Go ahead.", () => {
+                try {
+                    recognition.start();
+                } catch (err) {
+                    console.error(err);
+                }
+            });
+        }
+
+        // Voice Synthesizer Nudge (Text-to-Speech)
+        function speakText(text, callback) {
+            const voiceToggle = document.getElementById('voice-synthesis-toggle').checked;
+            if (!voiceToggle || !('speechSynthesis' in window)) {
+                if (callback) callback();
+                return;
+            }
+
+            if ('speechSynthesis' in window) {
+                // Cancel ongoing speakings
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                
+                // Get standard English voice if possible
+                const voices = window.speechSynthesis.getVoices();
+                const englishVoice = voices.find(v => v.lang.startsWith('en'));
+                if (englishVoice) utterance.voice = englishVoice;
+                
+                utterance.rate = 1.0;
+                
+                if (callback) {
+                    utterance.onend = callback;
+                    utterance.onerror = callback; // fallback
+                }
+                
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Form task additions
+        function addTaskToList() {
+            const title = document.getElementById('task-title').value.trim();
+            const desc = document.getElementById('task-desc').value.trim();
+            const duration = parseInt(document.getElementById('task-duration').value) || 30;
+            const deadline = document.getElementById('task-deadline').value.trim();
+            const category = document.getElementById('task-category').value;
+            const priority = document.getElementById('task-priority').value;
+
+            if (!title) return alert("Task title is required.");
+
+            const task = { title, desc, duration, deadline, category, priority, id: `task-${Date.now()}` };
+            tasksList.push(task);
+            localStorage.setItem('v2s_tasks', JSON.stringify(tasksList));
+            
+            // Clear inputs
+            document.getElementById('task-title').value = '';
+            document.getElementById('task-desc').value = '';
+            
+            renderTasksList();
+            speakText(`Added task ${title}`);
+        }
+
+        function removeTask(id) {
+            tasksList = tasksList.filter(t => t.id !== id);
+            localStorage.setItem('v2s_tasks', JSON.stringify(tasksList));
+            renderTasksList();
+        }
+
+        function renderTasksList() {
+            const listDiv = document.getElementById('schedule-timeline-container');
+            // If schedule empty, show list of manual tasks
+            if (currentSchedule.length === 0) {
+                if (tasksList.length === 0) {
+                    listDiv.innerHTML = `
+                        <div class="empty-state">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <div>Your timeline is empty. Add tasks manually above or fill in the brain dump, then click optimize.</div>
+                        </div>`;
+                } else {
+                    let html = `<h3 style="margin-bottom:12px;">Active Task List (${tasksList.length} items)</h3>`;
+                    tasksList.forEach(t => {
+                        html += `
+                            <div class="schedule-card ${t.priority}" style="padding:16px;">
+                                <div class="card-header-row">
+                                    <span style="font-weight:700;">${t.title}</span>
+                                    <span class="priority-pill ${t.priority}">${t.priority}</span>
+                                </div>
+                                <div style="font-size:0.8rem; color:var(--text-muted);">Duration: ${t.duration}m | Deadline: ${t.deadline || 'None'}</div>
+                                <div style="display:flex; justify-content:space-between; margin-top:8px;">
+                                    <button class="btn-kickstart" style="padding:4px 8px;" onclick="generateSolutionsForTask('${t.title}', '${t.desc}')">Generate Doc/Solution</button>
+                                    <button class="btn-kickstart" style="padding:4px 8px; background:rgba(239,68,68,0.1); color:#f87171; border-color:rgba(239,68,68,0.2);" onclick="removeTask('${t.id}')">Delete</button>
+                                </div>
+                            </div>`;
+                    });
+                    listDiv.innerHTML = html;
+                }
+            }
+        }
+
+        // Call Dynamic AI Scheduler API
+        async function generateAISchedule() {
+            const brainDump = document.getElementById('brain-dump').value.trim();
+            const timeframe = document.getElementById('available-timeframe').value.trim();
+            
+            // Combine manual tasks and brain dump text
+            const loader = document.getElementById('planner-loading');
+            const timelineContainer = document.getElementById('schedule-timeline-container');
+            
+            // Format tasksList for API
+            let tasksPayload = [...tasksList];
+            if (brainDump) {
+                // Let Gemini integrate brain dump
+                tasksPayload.push({
+                    title: "Brain Dump Context",
+                    desc: brainDump,
+                    duration: 0,
+                    deadline: "",
+                    category: "General",
+                    priority: "Medium"
+                });
+            }
+
+            if (tasksPayload.length === 0) {
+                return alert("Please enter at least one task or fill in the Brain Dump textarea!");
+            }
+
+            loader.style.display = 'flex';
+            timelineContainer.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/schedule', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        tasks: tasksPayload,
+                        timeframe: timeframe,
+                        habits: habitsList.map(h => h.name),
+                        goals: goalsList.map(g => g.name)
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+
+                // Enrich with complete state
+                currentSchedule = data.map((item, idx) => ({
+                    ...item,
+                    id: `sched-task-${idx}-${Date.now()}`,
+                    completed: false
+                }));
+
+                localStorage.setItem('v2s_schedule', JSON.stringify(currentSchedule));
+                
+                // Clear manual input list since schedule is built
+                tasksList = [];
+                localStorage.setItem('v2s_tasks', JSON.stringify(tasksList));
+                document.getElementById('brain-dump').value = '';
+
+                renderSchedule(currentSchedule);
+                renderCalendar(currentSchedule);
+                speakText("Schedule generated successfully! Tasks sorted by deadline urgency.");
+            } catch (error) {
+                console.error(error);
+                timelineContainer.innerHTML = `<div class="error-message">Error optimization failed: ${error.message}</div>`;
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+
+        // Render timeline
+        function renderSchedule(schedule) {
+            const listDiv = document.getElementById('schedule-timeline-container');
+            listDiv.innerHTML = '';
+
+            if (!schedule || schedule.length === 0) {
+                renderTasksList();
+                return;
+            }
+
+            let filteredSchedule = [...schedule];
+            if (emergencyModeActive) {
+                // Hide low priority tasks
+                filteredSchedule = filteredSchedule.filter(item => item.priority !== 'Low');
+            }
+
+            const header = document.createElement('div');
+            header.style.cssText = "display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;";
+            header.innerHTML = `
+                <h3 style="font-family:'Outfit';">Today's AI Schedule</h3>
+                <span style="font-size:0.8rem; color:var(--text-muted); cursor:pointer;" onclick="clearFullSchedule()">Reset Schedule</span>
+            `;
+            listDiv.appendChild(header);
+
+            const timeline = document.createElement('div');
+            timeline.className = 'timeline';
+
+            filteredSchedule.forEach(item => {
+                const card = document.createElement('div');
+                card.className = `schedule-card ${item.priority} ${item.completed ? 'completed' : ''}`;
+                card.id = item.id;
+                
+                card.innerHTML = `
+                    <div class="card-header-row">
+                        <div class="time-badge-box">
+                            <span class="time-badge">${item.time}</span>
+                            <span class="priority-pill ${item.priority}">${item.priority}</span>
+                        </div>
+                        <label class="chk-complete" onclick="event.stopPropagation()">
+                            <input type="checkbox" ${item.completed ? 'checked' : ''} onchange="toggleScheduleComplete('${item.id}', this.checked)">
+                            Done
+                        </label>
+                    </div>
+                    <div class="schedule-task-title">${item.task}</div>
+                    <div class="schedule-note">💡 ${item.reasoning}</div>
+                    <div class="card-actions">
+                        <button class="btn-kickstart" onclick="generateSolutionsForTask('${item.task}', '${item.reasoning}')">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                            AI Solution & Docs
+                        </button>
+                    </div>
+                `;
+                timeline.appendChild(card);
+            });
+
+            listDiv.appendChild(timeline);
+        }
+
+        function toggleScheduleComplete(id, isChecked) {
+            const task = currentSchedule.find(t => t.id === id);
+            if (task) {
+                task.completed = isChecked;
+                localStorage.setItem('v2s_schedule', JSON.stringify(currentSchedule));
+                
+                const element = document.getElementById(id);
+                if (element) {
+                    if (isChecked) {
+                        element.classList.add('completed');
+                        speakText("Awesome! Task marked as done.");
+                    } else {
+                        element.classList.remove('completed');
+                    }
+                }
+            }
+        }
+
+        function clearFullSchedule() {
+            if (confirm("Reset current timeline schedule?")) {
+                currentSchedule = [];
+                localStorage.removeItem('v2s_schedule');
+                renderSchedule([]);
+                renderCalendar([]);
+            }
+        }
+
+        // Solutions & Documentation Generator (Slide Drawer)
+        let activeDocText = '';
+        let activeDocTitle = '';
+
+        async function generateSolutionsForTask(taskTitle, taskDesc) {
+            openDrawer(taskTitle, "Generating assignment solutions and templates. Please hold...");
+            
+            try {
+                const response = await fetch('/api/generate-docs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ taskTitle, taskDescription: taskDesc })
+                });
+
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+
+                activeDocText = data.markdown;
+                activeDocTitle = taskTitle;
+                
+                // Render Markdown in Drawer
+                document.getElementById('drawer-body-content').innerHTML = marked.parse(data.markdown);
+            } catch (error) {
+                console.error(error);
+                document.getElementById('drawer-body-content').innerHTML = `<p style="color:var(--high);">Failed to compile documentation: ${error.message}</p>`;
+            }
+        }
+
+        function openDrawer(title, placeholderText) {
+            document.getElementById('drawer-task-title').innerText = title;
+            document.getElementById('drawer-body-content').innerHTML = `<p>${placeholderText}</p>`;
+            document.getElementById('docs-drawer').classList.add('open');
+        }
+
+        function closeDrawer() {
+            document.getElementById('docs-drawer').classList.remove('open');
+        }
+
+        function copyDrawerContent() {
+            if (!activeDocText) return;
+            navigator.clipboard.writeText(activeDocText);
+            speakText("Solutions guide copied to clipboard!");
+        }
+
+        function downloadDrawerMarkdown() {
+            if (!activeDocText) return;
+            const blob = new Blob([activeDocText], { type: 'text/markdown' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${activeDocTitle.toLowerCase().replace(/[^a-z0-9]/g, '_')}_solution.md`;
+            link.click();
+        }
+
+        // Habits & Goals Management
+        function renderHabits() {
+            const listDiv = document.getElementById('habits-list');
+            listDiv.innerHTML = '';
+            if (habitsList.length === 0) {
+                listDiv.innerHTML = '<div class="empty-state">No active habits yet.</div>';
+                return;
+            }
+            habitsList.forEach((h, idx) => {
+                const item = document.createElement('div');
+                item.className = 'habit-item';
+                item.innerHTML = `
+                    <div class="habit-info">
+                        <span class="habit-name">${h.name}</span>
+                        <span class="habit-streak">🔥 Streak: ${h.streak} days</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <label style="cursor:pointer; display:flex; align-items:center; gap:6px;">
+                            <input type="checkbox" ${h.completed ? 'checked' : ''} onchange="toggleHabit('${h.name}', this.checked)">
+                            Done today
+                        </label>
+                        <button class="drawer-close" style="font-size:1.1rem; width:24px; height:24px;" onclick="deleteHabit(${idx})">&times;</button>
+                    </div>
+                `;
+                listDiv.appendChild(item);
+            });
+        }
+
+        function addHabit() {
+            const name = document.getElementById('habit-title').value.trim();
+            if (!name) return;
+            habitsList.push({ name, streak: 0, completed: false });
+            localStorage.setItem('v2s_habits', JSON.stringify(habitsList));
+            document.getElementById('habit-title').value = '';
+            renderHabits();
+        }
+
+        function toggleHabit(name, isChecked) {
+            const habit = habitsList.find(h => h.name === name);
+            if (habit) {
+                habit.completed = isChecked;
+                if (isChecked) {
+                    habit.streak += 1;
+                    speakText(`Great job! Streak increased to ${habit.streak} days.`);
+                } else {
+                    habit.streak = Math.max(0, habit.streak - 1);
+                }
+                localStorage.setItem('v2s_habits', JSON.stringify(habitsList));
+                renderHabits();
+            }
+        }
+
+        function deleteHabit(index) {
+            habitsList.splice(index, 1);
+            localStorage.setItem('v2s_habits', JSON.stringify(habitsList));
+            renderHabits();
+        }
+
+        // Goals Management
+        function renderGoals() {
+            const listDiv = document.getElementById('goals-list');
+            listDiv.innerHTML = '';
+            if (goalsList.length === 0) {
+                listDiv.innerHTML = '<div class="empty-state">No long-term goals set.</div>';
+                return;
+            }
+            goalsList.forEach((g, idx) => {
+                const item = document.createElement('div');
+                item.className = 'goal-item';
+                item.innerHTML = `
+                    <div class="goal-info">
+                        <span class="goal-name">${g.name}</span>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-decompose" onclick="decomposeGoal('${g.name}')">AI Decompose</button>
+                        <button class="drawer-close" style="font-size:1.1rem; width:24px; height:24px;" onclick="deleteGoal(${idx})">&times;</button>
+                    </div>
+                `;
+                listDiv.appendChild(item);
+            });
+        }
+
+        function addGoal() {
+            const name = document.getElementById('goal-title').value.trim();
+            if (!name) return;
+            goalsList.push({ name });
+            localStorage.setItem('v2s_goals', JSON.stringify(goalsList));
+            document.getElementById('goal-title').value = '';
+            renderGoals();
+        }
+
+        function deleteGoal(index) {
+            goalsList.splice(index, 1);
+            localStorage.setItem('v2s_goals', JSON.stringify(goalsList));
+            renderGoals();
+        }
+
+        // AI Goal Decomposer
+        async function decomposeGoal(goalName) {
+            openGoalModal(goalName, "Decomposing goal into actionable milestones...");
+            
+            try {
+                const response = await fetch('/api/decompose', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ goal: goalName })
+                });
+
+                const steps = await response.json();
+                if (steps.error) throw new Error(steps.error);
+
+                renderModalSteps(steps);
+            } catch (error) {
+                console.error(error);
+                document.getElementById('modal-steps-container').innerHTML = `<p style="color:var(--high);">Decomposition failed: ${error.message}</p>`;
+            }
+        }
+
+        function openGoalModal(title, placeholderText) {
+            document.getElementById('modal-goal-title').innerText = `Roadmap: ${title}`;
+            document.getElementById('modal-steps-container').innerHTML = `<p style="text-align:center; padding:20px;">${placeholderText}</p>`;
+            document.getElementById('goal-modal').style.display = 'flex';
+        }
+
+        function closeGoalModal() {
+            document.getElementById('goal-modal').style.display = 'none';
+        }
+
+        function renderModalSteps(steps) {
+            const container = document.getElementById('modal-steps-container');
+            container.innerHTML = '';
+            steps.forEach(step => {
+                const div = document.createElement('div');
+                div.className = 'modal-step-item';
+                div.innerHTML = `
+                    <span style="font-size:0.9rem; font-weight:500;">${step}</span>
+                    <button class="btn-add-step-task" onclick="addGoalStepAsTask('${step}')" title="Import as Task">+</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function addGoalStepAsTask(stepText) {
+            // Add to tasksList
+            tasksList.push({
+                title: stepText,
+                desc: "Action step generated from long-term goal roadmap.",
+                duration: 30,
+                deadline: "Today",
+                category: "Goal",
+                priority: "High",
+                id: `task-${Date.now()}`
+            });
+            localStorage.setItem('v2s_tasks', JSON.stringify(tasksList));
+            renderTasksList();
+            speakText("Imported roadmap step into planner!");
+            closeGoalModal();
+            switchTab('tab-planner');
+        }
+
+        // Calendar view
+        function renderCalendar(schedule) {
+            // Clear cells
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const calDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            calDays.forEach(d => document.getElementById(`cal-${d}`).innerHTML = '');
+
+            if (!schedule || schedule.length === 0) return;
+
+            // Get current day of week (0 = Sunday, 1 = Monday, etc.)
+            const currentDayIndex = new Date().getDay();
+            const currentDayName = days[currentDayIndex];
+            
+            const cell = document.getElementById(`cal-${currentDayName}`);
+            
+            if (cell) {
+                schedule.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = `cal-task-pill ${item.priority}`;
+                    div.innerText = `[${item.time.split(' - ')[0]}] ${item.task}`;
+                    div.title = `${item.task}\nTime: ${item.time}\nReasoning: ${item.reasoning}`;
+                    div.onclick = () => generateSolutionsForTask(item.task, item.reasoning);
+                    
+                    cell.appendChild(div);
+                });
+            }
+        }
+
+        // Export calendar schedule to iCalendar format (.ics)
+        function exportToICS() {
+            if (currentSchedule.length === 0) {
+                return alert("No active schedule to export! Please generate a schedule first.");
+            }
+
+            let icsContent = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Slotify//AI Scheduler//EN\r\n";
+            
+            const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
+            
+            currentSchedule.forEach((item, idx) => {
+                // Parse time ranges (e.g. 2:00 PM - 3:00 PM)
+                const timeParts = item.time.split(' - ');
+                let startHour = 9 + idx; // Default incremental time slots if parsing fails
+                let endHour = 10 + idx;
+                
+                if (timeParts.length === 2) {
+                    const startRaw = timeParts[0];
+                    const endRaw = timeParts[1];
+                    
+                    const parseHour = (raw) => {
+                        const m = raw.match(/(\d+):(\d+)\s*(AM|PM)/i);
+                        if (m) {
+                            let hr = parseInt(m[1]);
+                            const min = m[2];
+                            const period = m[3].toUpperCase();
+                            if (period === 'PM' && hr !== 12) hr += 12;
+                            if (period === 'AM' && hr === 12) hr = 0;
+                            return `${hr.toString().padStart(2, '0')}${min}00`;
+                        }
+                        return "120000";
+                    };
+                    
+                    const startVal = parseHour(startRaw);
+                    const endVal = parseHour(endRaw);
+                    
+                    icsContent += "BEGIN:VEVENT\r\n";
+                    icsContent += `DTSTART:${todayStr}T${startVal}\r\n`;
+                    icsContent += `DTEND:${todayStr}T${endVal}\r\n`;
+                    icsContent += `SUMMARY:${item.task}\r\n`;
+                    icsContent += `DESCRIPTION:Priority: ${item.priority}\\nReasoning: ${item.reasoning}\\nGenerated by Slotify AI Advisor.\\n\r\n`;
+                    icsContent += "END:VEVENT\r\n";
+                }
+            });
+
+            icsContent += "END:VCALENDAR\r\n";
+
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `vibe2ship_schedule.ics`;
+            link.click();
+            speakText("Calendar exported successfully! Check your downloads.");
+        }
+
+        // Emergency and Proactive Alarms
+        function toggleEmergencyMode(isActive) {
+            emergencyModeActive = isActive;
+            localStorage.setItem('v2s_emergency', JSON.stringify(emergencyModeActive));
+            
+            document.getElementById('emergency-mode-toggle').checked = isActive;
+            document.getElementById('emergency-banner').style.display = isActive ? 'flex' : 'none';
+            
+            renderSchedule(currentSchedule);
+
+            if (isActive) {
+                speakText("Emergency focus mode activated. Filtering calendar. Let's finish your high priority items.");
+            } else {
+                speakText("Emergency mode deactivated.");
+            }
+        }
+
+        function simulateUrgentNudge() {
+            // Find a high priority task
+            const highTask = currentSchedule.find(t => t.priority === 'High' && !t.completed) || { task: "Chemistry Lab Assignment" };
+            
+            const alertText = `Proactive Urgency Alert: Your task "${highTask.task}" is scheduled with a near deadline approaching! Let's start on it immediately. I have loaded an AI solution guide in your drawer to help you start.`;
+            
+            // Visual alert
+            alert(alertText);
+            
+            // Speak alert
+            speakText(alertText);
+            
+            // Open documentation drawer automatically for task
+            generateSolutionsForTask(highTask.task, "Urgent deadline starting now.");
+        }
+
+        // AI Advisor Chat Integrations
+        async function sendAdvisorMessage(customMsg = null) {
+            const chatInput = document.getElementById('chat-input');
+            const message = (customMsg || chatInput.value).trim();
+            if (!message) return;
+
+            if (!customMsg) chatInput.value = '';
+
+            // Add user message to UI
+            appendChatMessage(message, 'user');
+
+            // Send to Express API
+            try {
+                const response = await fetch('/api/advisor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message,
+                        history: advisorHistory,
+                        currentTasks: currentSchedule
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+
+                appendChatMessage(data.response, 'bot');
+                
+                // Add to history
+                advisorHistory.push({ role: 'user', text: message });
+                advisorHistory.push({ role: 'model', text: data.response });
+
+            } catch (error) {
+                console.error(error);
+                appendChatMessage(`Error querying advisor: ${error.message}`, 'bot');
+            }
+        }
+
+        function appendChatMessage(text, sender) {
+            const container = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            div.className = `chat-msg ${sender}`;
+            
+            if (sender === 'bot') {
+                div.innerHTML = marked.parse(text);
+            } else {
+                div.innerText = text;
+            }
+            
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function triggerQuickChat(prompt) {
+            sendAdvisorMessage(prompt);
+        }
+    </script>
+</body>
+</html>

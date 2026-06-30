@@ -1,0 +1,11 @@
+node_modules
+npm-debug.log
+.env
+.git
+.gitignore
+scratch
+test_gemini.js
+test_all_endpoints.js
+test_endpoint.js
+deployment_guide.md
+project_description.md
